@@ -1,0 +1,86 @@
+package com.estudojava.todolist;
+
+import com.estudojava.todolist.entity.Todo;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.reactive.server.WebTestClient;
+
+
+//import static com.estudojava.todolist.TestConstants.TODOS;
+import static com.estudojava.todolist.TestConstants.TODO;
+
+
+																				//Banco H2: Banco de teste
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)    //Para rodar em uma porta aleatoria
+
+
+//@Sql("/remove.sql")
+
+class  TodolistApplicationTests {
+
+	@Autowired
+	private WebTestClient webTestClient;                           				//estudar o que é feito exatamente
+
+	@Test
+	void testCreateTodoSuccess() {
+
+		Todo todo = new Todo("todo 1", "descrição todos 1", false , 1);
+
+		webTestClient
+				.post()
+				.uri("/todos")
+				.bodyValue(todo)
+				.exchange()                                        //faz a requisição
+				.expectStatus().isOk()
+				.expectBody()
+				.jsonPath("$").isArray()
+				.jsonPath("$.length()").isEqualTo(1)
+				.jsonPath("$[0].name").isEqualTo(todo.getName())
+				.jsonPath("$[0].description").isEqualTo(todo.getDescription())
+				.jsonPath("$[0].completed").isEqualTo(todo.getCompleted())
+				.jsonPath("$[0].priority").isEqualTo(todo.getPriority());
+
+
+	}
+
+
+	@Test
+	void testCreateTodoFailure() {
+
+		webTestClient
+				.post()
+				.uri("/todos")
+				.bodyValue(
+						new Todo("", "", false, 2)
+				)
+				.exchange()
+				.expectStatus().isBadRequest();
+
+	}
+
+	@Sql("/import.sql")
+	@Test
+	public void testUpdateTodoFailure() {
+
+		Todo todo = new Todo(TODO.getId(), TODO.getName() + "up", TODO.getDescription(), TODO.getCompleted(), TODO.getPriority() + 1);
+
+		webTestClient
+				.put()
+				.uri("/todos/" + TODO.getId())
+				.bodyValue(todo)
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody()
+				.jsonPath("$").isArray()
+				.jsonPath("$.length()").isEqualTo(5)
+				.jsonPath("$[0].name").isEqualTo(todo.getName())
+				.jsonPath("$[0].description").isEqualTo(todo.getDescription())
+				.jsonPath("$[0].completed").isEqualTo(todo.getCompleted())
+				.jsonPath("$[0].priority").isEqualTo(todo.getPriority());
+
+
+	}
+}
