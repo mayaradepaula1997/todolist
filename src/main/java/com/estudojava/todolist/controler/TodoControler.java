@@ -31,10 +31,10 @@ public class TodoControler {
     }
 
 
-    @PutMapping
-    public List<Todo> update(@RequestBody Todo todo){
+    @PutMapping("{id}")
+    public List<Todo> update(@PathVariable Long id, @RequestBody Todo todo){
 
-        return todoService.update(todo);
+        return todoService.update(id,todo);
 
     }
 
