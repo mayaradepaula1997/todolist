@@ -1,7 +1,9 @@
 package com.estudojava.todolist.service;
 
 import com.estudojava.todolist.entity.Todo;
+
 import com.estudojava.todolist.repository.TodoRepository;
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +21,6 @@ public class TodoService {
 
 
     public List<Todo> create(Todo todo){
-
         todoRepository.save(todo);
 
         return list();
@@ -39,18 +40,34 @@ public class TodoService {
 
     }
 
-    public List<Todo> update(Todo todo){
 
-        todoRepository.save(todo);
+    public List<Todo> update(Long id, Todo todo) {
+        todoRepository.findById(id).ifPresentOrElse((existingTodo) -> {
+            todo.setId(id);
+            todoRepository.save(todo);
+        }, () -> {
+            try {
+                throw new BadRequestException("Todo %d não existe! ".formatted(id));
+            } catch (BadRequestException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         return list();
 
     }
 
-    public List<Todo> delete(Long id){
 
-        todoRepository.deleteById(id);
 
+    public List<Todo> delete(Long id) {
+        todoRepository.findById(id).ifPresentOrElse((existingTodo) -> todoRepository.delete(existingTodo), () -> {
+            try {
+                throw new BadRequestException("Todo %d não existe! ".formatted(id));
+            } catch (BadRequestException e) {
+                throw new RuntimeException(e);
+            }
+        });
         return list();
     }
-}
+    }
+
