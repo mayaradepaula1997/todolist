@@ -13,16 +13,20 @@ public class Todo {
    private Long id;
 
    @NotBlank
-   @NotNull
+   //@NotNull
    private String name;
 
    @NotBlank
-   @NotNull
+   //@NotNull
    private String description;
 
    private Boolean completed;
 
    private Integer priority;
+
+   public Todo(){
+
+   }
 
 
    public Todo(String name, String description, Boolean completed, Integer priority) {
