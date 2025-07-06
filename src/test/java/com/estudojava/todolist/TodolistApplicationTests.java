@@ -11,13 +11,14 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 //import static com.estudojava.todolist.TestConstants.TODOS;
 import static com.estudojava.todolist.TestConstants.TODO;
+import static com.estudojava.todolist.TestConstants.TODOS;
 
 
-																				//Banco H2: Banco de teste
+//Banco H2: Banco de teste
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)    //Para rodar em uma porta aleatoria
 
 
-//@Sql("/remove.sql")
+@Sql("/remove.sql")
 
 class  TodolistApplicationTests {
 
@@ -63,13 +64,13 @@ class  TodolistApplicationTests {
 
 	@Sql("/import.sql")
 	@Test
-	public void testUpdateTodoFailure() {
+	public void testUpdateTodoSuccess() {
 
 		Todo todo = new Todo(TODO.getId(), TODO.getName() + "up", TODO.getDescription(), TODO.getCompleted(), TODO.getPriority() + 1);
 
 		webTestClient
 				.put()
-				.uri("/todos/" + TODO.getId())
+				.uri("/todos/{id}", TODO.getId())
 				.bodyValue(todo)
 				.exchange()
 				.expectStatus().isOk()
@@ -83,4 +84,36 @@ class  TodolistApplicationTests {
 
 
 	}
+
+	@Test
+	public void testUpdateTodoFailure(){
+
+		var unexinstingId = 1L;
+
+		webTestClient
+				.put()
+				.uri("/todos/" + unexinstingId)
+				.bodyValue(new Todo(unexinstingId,"","", false,0 ))
+				.exchange()
+				.expectStatus().isBadRequest();
+	}
+
+	@Sql("/import.sql")
+	@Test
+	public void testDeleteTodoSuccess() {
+		webTestClient
+				.delete()
+				.uri("/todos/" + TODOS.get(0).getId())
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody()
+				.jsonPath("$").isArray()
+				.jsonPath("$.length()").isEqualTo(4)
+				.jsonPath("$[0].name").isEqualTo(TODOS.get(1).getName())
+				.jsonPath("$[0].description").isEqualTo(TODOS.get(1).getDescription())
+				.jsonPath("$[0].completed").isEqualTo(TODOS.get(1).getCompleted())
+				.jsonPath("$[0].priority").isEqualTo(TODOS.get(1).getDescription());
+																					}
+
+
 }
