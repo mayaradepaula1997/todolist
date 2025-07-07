@@ -23,12 +23,12 @@ import static com.estudojava.todolist.TestConstants.TODOS;
 class  TodolistApplicationTests {
 
 	@Autowired
-	private WebTestClient webTestClient;                           				//estudar o que é feito exatamente
+	private WebTestClient webTestClient;                                        //estudar o que é feito exatamente
 
 	@Test
 	void testCreateTodoSuccess() {
 
-		Todo todo = new Todo("todo 1", "descrição todos 1", false , 1);
+		Todo todo = new Todo("todo 1", "descrição todos 1", false, 1);
 
 		webTestClient
 				.post()
@@ -86,14 +86,14 @@ class  TodolistApplicationTests {
 	}
 
 	@Test
-	public void testUpdateTodoFailure(){
+	public void testUpdateTodoFailure() {
 
 		var unexinstingId = 1L;
 
 		webTestClient
 				.put()
 				.uri("/todos/" + unexinstingId)
-				.bodyValue(new Todo(unexinstingId,"","", false,0 ))
+				.bodyValue(new Todo(unexinstingId, "", "", false, 0))
 				.exchange()
 				.expectStatus().isBadRequest();
 	}
@@ -112,8 +112,38 @@ class  TodolistApplicationTests {
 				.jsonPath("$[0].name").isEqualTo(TODOS.get(1).getName())
 				.jsonPath("$[0].description").isEqualTo(TODOS.get(1).getDescription())
 				.jsonPath("$[0].completed").isEqualTo(TODOS.get(1).getCompleted())
-				.jsonPath("$[0].priority").isEqualTo(TODOS.get(1).getDescription());
-																					}
+				.jsonPath("$[0].priority").isEqualTo(TODOS.get(1).getPriority());
+	}
 
+
+	@Test
+	public void testDeleteTodoFailure() {
+		var unexinstingId = 1L;
+
+		webTestClient
+				.delete()
+				.uri("/todos/" + unexinstingId)
+				.exchange()
+				.expectStatus().isBadRequest();
+	}
+
+	@Sql("/import.sql")
+	@Test
+	public void testListTodos() throws Exception {
+		webTestClient
+				.get()
+				.uri("/todos")
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody()
+				.jsonPath("$").isArray()
+				.jsonPath("$.length()").isEqualTo(5)
+				.jsonPath("$[0].id").isEqualTo(TODOS.get(0).getId())
+				.jsonPath("$[0].name").isEqualTo(TODOS.get(0).getName())
+				.jsonPath("$[0].description").isEqualTo(TODOS.get(0).getDescription())
+				.jsonPath("$[0].completed").isEqualTo(TODOS.get(0).getCompleted())
+				.jsonPath("$[0].priority").isEqualTo(TODOS.get(0).getPriority());
+	}
 
 }
+
